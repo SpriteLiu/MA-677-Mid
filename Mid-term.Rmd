@@ -1,0 +1,241 @@
+---
+title: "MA 677 Take-Home Assignment"
+author: "Hsueh-Pin Liu"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=F, include=F}
+library(dplyr)
+```
+
+# Problem 1
+
+Consider three boxes:
+
+A box containing two gold coins.
+
+A box containing two silver coins.
+
+A box containing one gold coin and a silver coin.
+
+You choose a box at random and withdraw one coin at random. It's a gold coin. What is the probability that the other coin in the same box is also a gold coin?
+
+## Simulation
+
+Besides the basic calculation method that I did it correct in class, the answer should be $\frac{2}{3}$, and I decide to use simulate the experiment for 100000 times and see the results.
+
+```{r}
+set.seed(1)
+n <- 100000
+x <- c("1G","1G","2S","2S","3G","3S")
+y <- sample(x,size=n,replace=T)
+y <- as.data.frame(y)
+m <- count(y,y)
+m
+#To satisfy the problem, we should calculate the ratio of "1G" to "1G"+"3G".
+print(33244/(33244+16766))
+```
+
+As a conclusion the answer of this problem is approximately equal to $\frac{2}{3}$ by using simulation. And then I want to explore something about statistical paradoxes, after searching a lot of information, I find an interesting one.
+
+## Birthday Paradox
+
+Imagine that there are 23 students in a class, what's the probability that two of them have the same birthday? Some people might think that there are 365 days in a year, so the probability is $\frac{23}{365}$ which is even smaller than 10%. But in fact, the correct formula should be $1-\frac{364}{365}*\frac{363}{365}*...*\frac{343}{365}$, and it is calculated as follows:
+
+```{r}
+print(1-prod(343:364)/365^22)
+```
+
+Surprisingly, we got a result that is over 0.5, which means that the probability two of them having the same birthday is higher than the probability that all of them have a different birthday!
+
+# Problem 3
+
+Suppose that a random variable Y has a probability density function given by $f(y)=ky^3e^{-(y/2)}$ for $y>0$.
+
+Find the value of k and calculate $E[y^2]$.
+
+## Solution 1
+
+Before I think about the gamma function, I use integration by parts to solve the problem. $\int u dv=uv-\int vdu$, so the function can be calculated as follows.
+
+```{=tex}
+\begin{center}
+
+$\int_{0}^{\infty}f(y)dy=\int_{0}^{\infty}ky^3e^{-\frac{y}{2}}dy=k(y^3(-2e^{-\frac{y}{2}})+\int_{0}^{\infty}6y^2e^{-\frac{y}{2}}dy$
+
+$\int_{0}^{\infty}6y^2e^{-\frac{y}{2}}dy=6y^2(-2e^{-\frac{y}{2}})+\int_{0}^{\infty}24ye^{-\frac{y}{2}}dy$
+
+$\int_{0}^{\infty}24ye^{-\frac{y}{2}}dy=24y(-2e^{-\frac{y}{2}})+\int_{0}^{\infty}48e^{-\frac{y}{2}}dy$
+
+\end{center}
+```
+
+So we can get the final result.
+
+```{=tex}
+\begin{center}
+
+$\int_{0}^{\infty}f(y)dy=k(y^3+6y^2+24y+48)(-2e^{-\frac{y}{2}})|_{0}^{\infty}=96k=1$
+
+$k=\frac{1}{96}$
+
+\end{center}
+```
+
+And we can calculate $E[y^2]$ using the same method.
+
+```{=tex}
+\begin{center}
+
+$E[y^2]=\int_{0}^{\infty}f(y)*y^2dy=\frac{1}{96}(y^5+10y^4+80y^3+480y^2+1920y+3840)(-2e^{-\frac{y}{2}})|_{0}^{\infty}=\frac{7680}{96}=80$
+
+$E[y^2]=80$
+
+\end{center}
+```
+
+This is calculation without using the gamma function, so it's more complex and takes more time.
+
+## Solution 2
+
+Let's consider $\Gamma(4,2)$.
+
+
+```{=tex}
+\begin{center}
+
+$f(y)=\frac{y^3e^{-\frac{y}{2}}}{2^4\Gamma(4)}=\frac{y^3e^{-\frac{y}{2}}}{96}$
+\end{center}
+```
+
+And we know that 
+
+```{=tex}
+\begin{center}
+
+$\int_{0}^{\infty}\frac{y^3e^{-\frac{y}{2}}}{96}=1$
+
+\end{center}
+```
+
+So
+
+```{=tex}
+\begin{center}
+
+$k=\frac{1}{96}$
+
+\end{center}
+```
+
+In order to calculate $E[Y^2]$, we can consider $\Gamma(6,2)$
+
+```{=tex}
+\begin{center}
+
+$f(y)=\frac{y^5e^{-\frac{y}{2}}}{2^6\Gamma(6)}=\frac{y^5e^{-\frac{y}{2}}}{7680}$
+
+$\int_{0}^{\infty}\frac{y^5e^{-\frac{y}{2}}}{7680}=1$
+
+$E[y^2]=\int_{0}^{\infty}f(y)*y^2dy=\int_{0}^{\infty}\frac{y^5e^{-\frac{y}{2}}}{96}dy=80\int_{0}^{\infty}\frac{y^5e^{-\frac{y}{2}}}{7680}dy=80$
+
+\end{center}
+```
+
+
+
+
+
+
+# Problem 5
+
+Suppose that the random variables X and Y are such that $E[X] = 4$, $E[Y] = −1$, $V[X] = 2$,
+and $V[Y] = 8$.
+
+(a) What is the largest possible value of $Cov(X,Y)$?
+
+(b) Assuming $\rho_{X,Y}$= 0.3, find $V(X,Z)$ where $Z = X+bY$ and $b ∈ R$.
+
+## Solution
+
+(a) Because 
+
+```{=tex}
+\begin{center}
+
+$\rho_{X,Y}=\frac{Cov(X,Y)}{\sqrt{V(X)V(Y)}},\rho_{X,Y}\leq 1$
+
+\end{center}
+```
+
+So we can have
+
+```{=tex}
+\begin{center}
+
+$Cov(X,Y)\leq\sqrt{V(X)V(Y)}=\sqrt{2*8}=4$
+
+$\max Cov(X,Y)=4$
+
+\end{center}
+```
+
+(b)
+
+```{=tex}
+\begin{center}
+
+$V(X,Z)=V(X,X+bY)=V(X,X)+bV(X,Y)=V(X,X)+0.3b\sqrt{V(X)V(Y)}=2+1.2b$
+
+\end{center}
+```
+
+## Deep Thinking
+
+From question(a), I have two problems.
+
+1) When can $Cov(X,Y)$ get the largest value?
+
+2) If $\rho_{X,Y}=0$, does it mean that there's not any relation between them?
+
+### 1)
+
+When $Cov(X,Y)$ get the largest value, we can know that $\rho_{X,Y}=1$, which also means that there are constants $a,b$ such that $P\{Y=aX+b\}=1$, and to say this in an easy way, there is a linear relationship between $Y$ and $X$.
+
+### 2)
+
+In fact, we can consider the following example. Assume that $X_1=\sin{x}$, $X_2=\cos{x}$,we know that $\rho_{X1,X2}=0$, but we can't say there are not any relation between them since $X_1^2+X_2^2=1$, so when $\rho_{X,Y}=0$ we can only get the conclusion that they don't have a linear relationship.
+
+# Problem 6
+
+Suppose that the number of minutes you have to wait for a bus is uniformly distributed on the interval $[0, 15]$. You wait for the bus 3 times. Find the probability that your longest wait is less than 10 minutes.
+
+## Simulation
+
+Besides the basic calculation method that I did it correct in class, the answer should be $\frac{8}{27}$, and I decide to use simulate the experiment for 100000 times and see the results.
+
+```{r}
+n <- 100000
+x <- matrix(runif(n*3,min=0,max=15),nrow=n,ncol=3)
+max <- apply(x,1,max)
+print(sum(max<10)/n)
+```
+
+As a conclusion the answer of this problem is approximately equal to $\frac{8}{27}$ by using simulation. And for the situation mentioned in the problem, I have a similar example. When shopping in a market, if you are buying some products that you haven't buy before, A has 7 left on the shelf and B has only 2 left, which one will you choose? Probably most of us will choose B because we think it's more popular. We can actually use this idea to sell products with high inventory.
+
+
+
+
+
+
+
+
